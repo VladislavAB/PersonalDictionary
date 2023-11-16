@@ -80,3 +80,4 @@ else:
         print(f'Word - {word}, PoS - {part_of_speach}, Definition - {definition}, Example - {example}')
     else:
         print("No Definitions Found")
+
