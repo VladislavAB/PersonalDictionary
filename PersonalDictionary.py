@@ -2,7 +2,6 @@ import csv
 import requests
 import os.path
 import datetime
-
 def get_word_from_api(source_word):
     url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + source_word
     response = requests.get(url)
@@ -35,7 +34,7 @@ def get_word_from_api(source_word):
             example = response_json[0]['meanings'][0]['definitions'][0]['example']
         else:
             example = ' '
-    return definition, example, part_of_speach, add_date
+    return definition, example, part_of_speach
 def create_dict_stats(first_word):
     header = 'Word^Count^Last\n'
     count = 0
@@ -46,16 +45,21 @@ def create_dict_stats(first_word):
         file.write(header)
         file.write(row)
     return True
-
-def create_dict(first_word):
-    header = 'Word^Count^Last\n'
-    count = 0
-    time = datetime.datetime.now()
-    last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
-    row = first_word + '^' + str(count) + '^' + str(last) + '\n'
-    with open('stats.csv', 'w') as file:
-        file.write(header)
-        file.write(row)
+def create_dict(first_data):
+    now = datetime.datetime.now()
+    last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
+    row = first_data + "^" + last + "\n"
+    with open(dict_path, 'w') as f:
+        header = "Word^Part_of_Speach^Definition^Example^add_Date\n"
+        f.write(header)
+        f.write(row)
+    return True
+def append_dict(word_info):
+    now = datetime.datetime.now()
+    last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
+    row = word_info + "^" + last + "\n"
+    with open(dict_path, 'a') as f:
+        f.write(row)
     return True
 def pd_from_file(file_name):
     data = {}
@@ -71,12 +75,22 @@ def pd_from_file(file_name):
             data[word_form_file] = {'part_of_speach': part_of_speach,
                         'definition': definition,
                         'example': example,
-                        'date_of_add': add_date}
+                        'add_Date': add_date}
     return data
-
-
-x = datetime.datetime.now()
-add_date = x.strftime('%d') + '|' + x.strftime('%b') + '|' + x.strftime('%y')
+def from_dict(word):
+    now = datetime.datetime.now()
+    add_date = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
+    part_of_speach = pd[word]["part_of_speach"]
+    definition = pd[word]["definition"]
+    example = pd[word]["example"]
+    return part_of_speach, definition, example, add_date
+def print_info(word, part_of_speach, definition, example, add_date):
+    print(f'Word - {word},'
+          f' PoS - {part_of_speach},'
+          f' Definition - {definition},'
+          f' Example - {example},', end='')
+    if add_date:
+        print(f' Date - {add_date}')
 
 pd = {}
 dict_path = 'dict.csv'
@@ -89,35 +103,19 @@ word = input('Введите слово: ')
 if dict_exist:
     pd = pd_from_file(dict_path)
 if word in pd.keys():
-    print(f'Word - {word}, '
-            f'PoS - {pd[word]["part_of_speach"]},'
-            f' Definition - {pd[word]["definition"]},'
-            f' Example - {pd[word]["example"]},'
-            f' Date - {add_date}')
+    part_of_speach, definition, example, add_date = pd[word]["part_of_speach"], pd[word]["definition"], pd[word]["example"], pd[word]["add_Date"]
+    print_info(word, part_of_speach, definition, example, add_date)
     exit()
 else:
     api_response = get_word_from_api(word)
     if api_response:
-        definition, example, part_of_speach, add_date = api_response
-        row = word + '^' + part_of_speach + '^' + definition + '^' + example + '^' + add_date + '\n'
+        definition, example, part_of_speach = api_response
+        print_info(word, part_of_speach, definition, example, None)
+        word_info = word + '^' + part_of_speach + '^' + definition + '^' + example
         if dict_exist:
-            with open(dict_path, 'a') as f:
-                f.write(row)
-            print(f'Word - {word},'
-                  f' PoS - {part_of_speach},'
-                  f' Definition - {definition},'
-                  f' Example - {example},'
-                  f' Date - {add_date}')
+            append_dict(word_info)
         else:
-            with open(dict_path, 'w') as f:
-                header = "Word^Part_of_Speach^Definition^Example^Date_of_addition\n"
-                f.write(header)
-                f.write(row)
-            print(f'Word - {word},'
-                  f' PoS - {part_of_speach},'
-                  f' Definition - {definition},'
-                  f' Example - {example},'
-                  f' Date - {add_date}')
+            create_dict(word_info)
     else:
         print("No Definitions Found")
         exit()
@@ -138,6 +136,3 @@ else:
     #                 count_of_inputs = row[1]
     #                 date_of_last_input = row[2]
     #                 sd[word] = {'count_of_inputs': count_of_inputs, 'date_of_last_input': date_of_last_input}
-
-
-
