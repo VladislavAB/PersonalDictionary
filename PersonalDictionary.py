@@ -35,16 +35,47 @@ def get_word_from_api(source_word):
         else:
             example = ' '
     return definition, example, part_of_speach
-def create_dict_stats(first_word):
+def create_stats(first_word):
     header = 'Word^Count^Last\n'
-    count = 0
+    count = 1
     time = datetime.datetime.now()
     last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
-    row = first_word + '^' + str(count) + '^' + str(last) + '\n'
-    with open('stats.csv', 'w') as file:
+    row = first_word + '^' + str(count) + '^' + last + '\n'
+    with open(dict_stat_path, 'w') as file:
         file.write(header)
         file.write(row)
+    print(' '.join(row.split('^')))
     return True
+def read_stats():
+    stats_dict = {}
+    word_for_stats = ''
+    with open(dict_stat_path, 'r') as f:
+        read = csv.reader(f, delimiter='^')
+        next(read)
+        for row in read:
+            word_for_stats = row[0]
+            count_for_stats = row[1]
+            add_date_for_stats = row[2]
+            stats_dict[word_for_stats] = {'Count': count_for_stats, 'Last': add_date_for_stats}
+    return stats_dict
+def update_dict_stats(word):
+    time = datetime.datetime.now()
+    last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
+    stats = read_stats()
+    if word in stats.keys():
+        stats[word]['Count'] = str(int(stats[word]['Count']) + 1)
+        stats[word]['Last'] = last
+    else:
+        stats[word] = {'Count': '1', 'Last': last}
+    print(stats)
+    return stats
+def save_stats(stats):
+    with open(dict_stat_path, 'w') as f:
+        header = 'Word^Count^Last\n'
+        f.write(header)
+        for key, value in stats.items():
+            row = key + "^" + value["Count"] + "^" + value["Last"] + "\n"
+            f.write(row)
 def create_dict(first_data):
     now = datetime.datetime.now()
     last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
@@ -102,10 +133,15 @@ word = input('Введите слово: ')
 
 if dict_exist:
     pd = pd_from_file(dict_path)
-if word in pd.keys():
-    part_of_speach, definition, example, add_date = pd[word]["part_of_speach"], pd[word]["definition"], pd[word]["example"], pd[word]["add_Date"]
-    print_info(word, part_of_speach, definition, example, add_date)
-    exit()
+    if word in pd.keys():
+        part_of_speach, definition, example, add_date = pd[word]["part_of_speach"], pd[word]["definition"], pd[word]["example"], pd[word]["add_Date"]
+        print_info(word, part_of_speach, definition, example, add_date)
+        if dict_stat_exist:
+            stats = update_dict_stats(word)
+            save_stats(stats)
+        else:
+            create_stats(word)
+        exit()
 else:
     api_response = get_word_from_api(word)
     if api_response:
@@ -119,20 +155,3 @@ else:
     else:
         print("No Definitions Found")
         exit()
-
-
-
-
-
-    # else:
-    #     sd = {}
-    #     path = 'stats.csv'
-    #     if os.path.exists(path):
-    #         with open('stats.csv', 'r') as file:
-    #             reader = csv.reader(file, delimiter='^')
-    #             next(reader)
-    #             for row in reader:
-    #                 word = row[0]
-    #                 count_of_inputs = row[1]
-    #                 date_of_last_input = row[2]
-    #                 sd[word] = {'count_of_inputs': count_of_inputs, 'date_of_last_input': date_of_last_input}
