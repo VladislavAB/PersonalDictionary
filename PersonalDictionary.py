@@ -15,7 +15,7 @@ word = input('Введите слово: ')
 if dict_exist:
     pd = Dictionary.pd_from_file(dict_path)
 if word in pd.keys():
-    part_of_speasch, definition, example, add_date = pd[word]["part_of_speach"], pd[word]["definition"], pd[word]["example"], pd[word]["add_Date"]
+    part_of_speach, definition, example, add_date = pd[word]["part_of_speach"], pd[word]["definition"], pd[word]["example"], pd[word]["add_Date"]
     Dictionary.print_info(word, part_of_speach, definition, example, add_date)
     stats = Dictionary.update_dict_stats(dict_stat_path, word)
     Dictionary.save_stats(dict_stat_path, stats)

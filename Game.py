@@ -44,3 +44,8 @@ for word in words:
     guess = int(input(f'Что означает слово: {word}? '))
     if pd[word]['definition'] == answers[int(guess)-1]:
         print('Вы угадали!')
+        # update Statistic #1
+    # К файлу статистики применить метод sorted, создать топ худших слов.
+    else:
+        print('Вы не угадали')
+        # update Statistic #1
