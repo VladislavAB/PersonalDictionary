@@ -7,7 +7,7 @@ import Dictionary
 pd = {}
 dict_path = 'dict.csv'
 dict_exist = True if os.path.exists(dict_path) else False
-dict_stat_path = 'stats.csv'
+dict_stat_path = 'dict_stats.csv'
 dict_stat_exist = True if os.path.exists(dict_stat_path) else False
 
 word = input('Введите слово: ')
