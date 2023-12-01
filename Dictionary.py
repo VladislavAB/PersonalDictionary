@@ -2,7 +2,9 @@ import csv
 import requests
 import os.path
 import datetime
-def get_word_from_api(source_word):
+dict_stat_path = 'dict_stats.csv'
+dict_stat_exist = True if os.path.exists(dict_stat_path) else False
+def get_word_from_api(source_word: str) -> tuple or None:
     url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + source_word
     response = requests.get(url)
     response_json = response.json()
@@ -35,19 +37,20 @@ def get_word_from_api(source_word):
         else:
             example = ' '
     return definition, example, part_of_speach
-def read_stats(dict_stat_path):
+def read_stats(dict_stat_path: str)-> dict:
     stats_dict = {}
     word_for_stats = ''
-    with open(dict_stat_path, 'r') as f:
-        read = csv.reader(f, delimiter='^')
-        next(read)
-        for row in read:
-            word_for_stats = row[0]
-            count_for_stats = row[1]
-            add_date_for_stats = row[2]
-            stats_dict[word_for_stats] = {'Count': count_for_stats, 'Last': add_date_for_stats}
+    if os.path.exists(dict_stat_path):
+        with open(dict_stat_path, 'r') as f:
+            read = csv.reader(f, delimiter='^')
+            next(read)
+            for row in read:
+                word_for_stats = row[0]
+                count_for_stats = row[1]
+                add_date_for_stats = row[2]
+                stats_dict[word_for_stats] = {'Count': count_for_stats, 'Last': add_date_for_stats}
     return stats_dict
-def update_dict_stats(dict_stat_path, word):
+def update_dict_stats(dict_stat_path: str, word: str)->dict:
     time = datetime.datetime.now()
     last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
     stats = read_stats(dict_stat_path)
@@ -58,14 +61,14 @@ def update_dict_stats(dict_stat_path, word):
     else:
         stats[word] = {'Count': '1', 'Last': last}
     return stats
-def save_stats(dict_stat_path, stats):
+def save_stats(dict_stat_path: str, stats: dict) -> None:
     with open(dict_stat_path, 'w') as f:
         header = 'Word^Count^Last\n'
         f.write(header)
         for key, value in stats.items():
             row = key + "^" + value["Count"] + "^" + value["Last"] + "\n"
             f.write(row)
-def create_dict_file(dict_path, first_data):
+def create_dict_file(dict_path: str, first_data: str)-> True:
     now = datetime.datetime.now()
     last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
     row = first_data + "^" + last + "\n"
@@ -74,14 +77,14 @@ def create_dict_file(dict_path, first_data):
         f.write(header)
         f.write(row)
     return True
-def append_dict(dict_path, word_info):
+def append_dict(dict_path: str, word_info: str)-> True:
     now = datetime.datetime.now()
     last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
     row = word_info + "^" + last + "\n"
     with open(dict_path, 'a') as f:
         f.write(row)
     return True
-def pd_from_file(file_name):
+def pd_from_file(file_name: str)-> dict:
     data = {}
     with open(file_name, 'r') as f:
         dict_file = csv.reader(f, delimiter= '^')
@@ -97,11 +100,10 @@ def pd_from_file(file_name):
                         'example': example,
                         'add_Date': add_date}
     return data
-def print_info(word, part_of_speach, definition, example, add_date):
+def print_info(word: str, part_of_speach: str, definition: str, example: str, add_date: str)-> None:
     print(f'Word - {word},'
           f' PoS - {part_of_speach},'
           f' Definition - {definition},'
           f' Example - {example},', end='')
     if add_date:
         print(f' Date - {add_date}')
-
