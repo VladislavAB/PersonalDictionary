@@ -17,6 +17,19 @@ def input_count()-> int:
         else:
             print('Вы ввели букву вместо цифры!')
     return count
+# Делает проверку на ввод, диапазон количества слов.
+def get_words_from_dict(count: int)-> list:
+    words = []
+    pd_words = list(pd.keys()) #Лист всех слов
+    if count <= len(pd_words):
+        while len(words) != count:
+            number = random.randint(0, len(pd)-1)
+            if pd_words[number] not in words:
+                words.append(pd_words[number])
+    else:
+        words = pd_words
+    return words
+# Возвращает список рандомных слов равное count или меньше, все слова, которые есть.
 def input_guess()-> int:
     guess_OK = False
     guess = None
@@ -31,6 +44,7 @@ def input_guess()-> int:
         else:
             print('Вы ввели букву вместо цифры!')
     return guess
+# Делает проверку на ввод, диапазон выбора слова.
 def make_current_game_stat(right_answers: list, wrong_answers: list)-> dict:
     time = datetime.datetime.now()
     last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
@@ -40,6 +54,7 @@ def make_current_game_stat(right_answers: list, wrong_answers: list)-> dict:
     for word in wrong_answers:
         game_stat[word] = {'wrong': 1, 'right': 0, 'last': last}
     return game_stat
+# Делает статистику из первой игры. После - обнуляется.
 def create_game_stats(current_game_stat: dict)-> True:
     now = datetime.datetime.now()
     last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
@@ -50,6 +65,7 @@ def create_game_stats(current_game_stat: dict)-> True:
             row = word + "^" + str(stat['wrong']) + "^" + str(stat['right']) + "^" + last + "\n"
             f.write(row)
     return True
+# Создает файл csv из первой статистики.
 def read_game_stats()-> dict:
     game_stats_dict = {}
     if os.path.exists(game_stat_path):
@@ -107,18 +123,6 @@ def save_game_stats(updated_stats: dict)-> True:
             row = key + "^" + str(value['wrong']) + "^" + str(value['right']) + "^" + value['last'] + "\n"
             f.write(row)
     return True
-def get_words_from_dict(count: int)-> list:
-    words = []
-    pd_words = list(pd.keys()) #Лист всех слов
-    if count <= len(pd_words):
-        while len(words) != count:
-            number = random.randint(0, len(pd)-1)
-            if pd_words[number] not in words:
-                words.append(pd_words[number])
-    else:
-        words = pd_words
-    return words
-# Возвращает список рандомных слов равное count.
 def get_answers(word: str)-> list:
     answers = []
     pd_definitions = []
@@ -137,28 +141,32 @@ pd = {}
 dict_path = 'dict.csv'
 dict_stat_path = 'dict_stats.csv'
 game_stat_path = 'game_stats.csv'
-max_count = 30
+max_count = 5
 dict_exist = True if os.path.exists(dict_path) else False
 dict_stat_exist = True if os.path.exists(dict_stat_path) else False
 game_stat_exist = True if os.path.exists(game_stat_path) else False
+
 pd = Dictionary.pd_from_file(dict_path)
-
-count = input_count()
-
-got_words_form_dict = get_words_from_dict(count)# Возвращает список рандомных слов равное count.
-wrong_answers = []
-right_answers = []
 
 sorted_dict_statistic = read_dict_statistic()
 sorted_game_statistic = read_game_statistic()
 
-game_stats_count = len(sorted_game_statistic) if count//3 > len(sorted_game_statistic) else count
-dict_stats_count = len(sorted_dict_statistic) if count//3 > len(sorted_dict_statistic) else count
-dict_count = len(got_words_form_dict) if count//3 > len(got_words_form_dict) else count
+game_stats_count = len(sorted_game_statistic)
+dict_stats_count = len(sorted_dict_statistic)
+dict_count = len(pd.keys())
 
-words = sorted_dict_statistic[0:dict_stats_count] + sorted_game_statistic[0:game_stats_count] + got_words_form_dict[0:dict_count]
-words = words[: count]
+
+
+count = input_count()# Формирует количество слов.
+
+got_words_form_dict = get_words_from_dict(count)# Возвращает список рандомных слов равное count.
+wrong_answers = []
+right_answers = []
+words = []
+
 # Игра
+
+
 for word in words:
     answers = get_answers(word)# Возвращает список рандомных определений равное 4, включая правильное определение.
     for index in range(len(answers)):
@@ -179,6 +187,3 @@ if game_stat_exist:
 else:
     create_game_stats(current_game_stat)
 
-
-# 1)Если слово попадается в 2-х статистиках. Типа Fly. Set
-# 2)Одинаковые функции. Импорт из dictionary в game.
