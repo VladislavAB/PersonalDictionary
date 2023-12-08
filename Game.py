@@ -148,42 +148,136 @@ game_stat_exist = True if os.path.exists(game_stat_path) else False
 
 pd = Dictionary.pd_from_file(dict_path)
 
-sorted_dict_statistic = read_dict_statistic()
 sorted_game_statistic = read_game_statistic()
+game_stats = read_game_stats()
+dict_stats = read_dict_statistic()
+check_count_words = [i for i in read_game_stats().keys()]
 
-game_stats_count = len(sorted_game_statistic)
-dict_stats_count = len(sorted_dict_statistic)
-dict_count = len(pd.keys())
+# Определение игры
+game_number = None
+if len(pd.keys()) >= 10 and game_stat_exist is False:
+    game_number = 1
+elif len(sorted_game_statistic) == 5:
+    game_number = 2
+elif len(check_count_words) >= 10:
+    game_number = 3
+#
+# Первая игра
+main_pack = []
+pack5 = []
+if game_number == 1:
+    for word in pd.keys():
+        main_pack.append(word)
+        pack = main_pack[:5]
+        random.shuffle(pack)
+#       Запуск игры
+
+# Вторая игра
+if game_number == 2:
+    pack = main_pack[6:]
+    random.shuffle(pack)
+#   Запуск игры
+
+# Третья игра
+count = 2
+
+def get_num_from_list(source = list, exclude = list, count = int) -> list:
+    result = []
+    uniq_from_source = set(source) - set(exclude)
+    diff_len = len(uniq_from_source)
+    if diff_len >= 0:
+        count = min(diff_len, count)
+        while count > 0:
+            word = source.pop(0)
+            if word not in exclude:
+                result.append(word)
+                count -= 1
+    return result
 
 
 
-count = input_count()# Формирует количество слов.
 
-got_words_form_dict = get_words_from_dict(count)# Возвращает список рандомных слов равное count.
-wrong_answers = []
-right_answers = []
-words = []
+
+
+
+
+
+
+
+
+
+# if game_number ==3:
+#     random.shuffle(check_count_words)
+#     pack = check_count_words[:5]
+#     wrong_count = 0
+#     count_list = []
+#     for key, value in game_stats.items():
+#         if game_stats[key]['wrong'] > 0:
+#             wrong_count += 1
+#     if wrong_count > 0:
+#         for key in game_stats.keys():
+#             if key not in pack:
+#
+#
+#
+
+
+#
+#         if len(dict_stats) > 0:
+#             for word in dict_stats:
+#                 if word not in pack:
+#                     # pack.append() FIFO
+# #                     ограничить 1
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# sorted_dict_statistic = read_dict_statistic()
+#
+# game_stats_count = len(sorted_game_statistic)
+# dict_stats_count = len(sorted_dict_statistic)
+# dict_count = len(pd.keys())
+
+
+
+# count = input_count()# Формирует количество слов.
+
+# got_words_form_dict = get_words_from_dict(count)# Возвращает список рандомных слов равное count.
+# wrong_answers = []
+# right_answers = []
+# words = []
 
 # Игра
 
 
-for word in words:
-    answers = get_answers(word)# Возвращает список рандомных определений равное 4, включая правильное определение.
-    for index in range(len(answers)):
-        print(f'{index+1}.{answers[index]}')
-    guess = input_guess()
-    if pd[word]['definition'] == answers[int(guess)-1]:
-        right_answers.append(word)
-        print('Правильный ответ!')
-    else:
-        wrong_answers.append(word)
-        print('Неправильный ответ!')
-
-current_game_stat = make_current_game_stat(right_answers, wrong_answers)
-if game_stat_exist:
-    read_game_stat = read_game_stats()
-    updated_stats = update_dict_stats(read_game_stat, current_game_stat)
-    save_game_stats(updated_stats)
-else:
-    create_game_stats(current_game_stat)
+# for word in words:
+#     answers = get_answers(word)# Возвращает список рандомных определений равное 4, включая правильное определение.
+#     for index in range(len(answers)):
+#         print(f'{index+1}.{answers[index]}')
+#     guess = input_guess()
+#     if pd[word]['definition'] == answers[int(guess)-1]:
+#         right_answers.append(word)
+#         print('Правильный ответ!')
+#     else:
+#         wrong_answers.append(word)
+#         print('Неправильный ответ!')
+#
+# current_game_stat = make_current_game_stat(right_answers, wrong_answers)
+# if game_stat_exist:
+#     read_game_stat = read_game_stats()
+#     updated_stats = update_dict_stats(read_game_stat, current_game_stat)
+#     save_game_stats(updated_stats)
+# else:
+#     create_game_stats(current_game_stat)
 
