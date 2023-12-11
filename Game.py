@@ -33,6 +33,7 @@ def get_words_from_dict(count: int)-> list:
 def input_guess()-> int:
     guess_OK = False
     guess = None
+    question_number = 1
     while not guess_OK:
         guess = input(f'Что означает слово: {word}? ')
         if guess.isdigit():
@@ -136,6 +137,26 @@ def get_answers(word: str)-> list:
     random.shuffle(answers)
     return answers
 # Возвращает список рандомных определений равное 4, включая правильное определение.
+def get_num_from_source(source: list, exclude: list, count: int) -> list:
+    result = []
+    uniq_from_source = set(source) - set(exclude)
+    diff_len = len(uniq_from_source)
+    if diff_len >= 0:
+        count = min(diff_len, count)
+        while count > 0:
+            word_to_add = source.pop(0)
+            if word_to_add not in exclude:
+                result.append(word_to_add)
+                count -= 1
+    return result
+def change_elements(source: list, elements: list)-> list:
+    count = len(elements)
+    while count > 0:
+        for word_to_change in elements:
+            source.pop(0)
+            source.append(word_to_change)
+            count -= 1
+    return source
 
 pd = {}
 dict_path = 'dict.csv'
@@ -148,8 +169,8 @@ game_stat_exist = True if os.path.exists(game_stat_path) else False
 
 pd = Dictionary.pd_from_file(dict_path)
 
-sorted_game_statistic = read_game_statistic()
 game_stats = read_game_stats()
+sorted_game_statistic = read_game_statistic()
 dict_stats = read_dict_statistic()
 check_count_words = [i for i in read_game_stats().keys()]
 
@@ -161,123 +182,50 @@ elif len(sorted_game_statistic) == 5:
     game_number = 2
 elif len(check_count_words) >= 10:
     game_number = 3
-#
-# Первая игра
-main_pack = []
-pack5 = []
+# _________________
+pack = []
+# create words for play
 if game_number == 1:
-    for word in pd.keys():
-        main_pack.append(word)
-        pack = main_pack[:5]
-        random.shuffle(pack)
-#       Запуск игры
-
-# Вторая игра
-if game_number == 2:
-    pack = main_pack[6:]
+    pack = list(pd.keys())[:5]
     random.shuffle(pack)
-#   Запуск игры
+elif game_number == 2:
+    pack = list(pd.keys())[5:10]
+    random.shuffle(pack)
+else:   # game number > 2
+    while len(pack) < 5:
+        word = list(pd.keys())[random.randint(0, len(pd)-1)]
+        if word not in pack:
+            pack.append(word)
+    unique_words_game = get_num_from_source(sorted_game_statistic, pack, 2)
+    pack = change_elements(pack, unique_words_game)
+    unique_words_dict = get_num_from_source(dict_stats, pack, 1)
+    pack = change_elements(pack, unique_words_dict)
 
-# Третья игра
-count = 2
-
-def get_num_from_list(source = list, exclude = list, count = int) -> list:
-    result = []
-    uniq_from_source = set(source) - set(exclude)
-    diff_len = len(uniq_from_source)
-    if diff_len >= 0:
-        count = min(diff_len, count)
-        while count > 0:
-            word = source.pop(0)
-            if word not in exclude:
-                result.append(word)
-                count -= 1
-    return result
-
-
-
-
-
-
-
-
-
-
-
-
-
-# if game_number ==3:
-#     random.shuffle(check_count_words)
-#     pack = check_count_words[:5]
-#     wrong_count = 0
-#     count_list = []
-#     for key, value in game_stats.items():
-#         if game_stats[key]['wrong'] > 0:
-#             wrong_count += 1
-#     if wrong_count > 0:
-#         for key in game_stats.keys():
-#             if key not in pack:
-#
-#
-#
-
-
-#
-#         if len(dict_stats) > 0:
-#             for word in dict_stats:
-#                 if word not in pack:
-#                     # pack.append() FIFO
-# #                     ограничить 1
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# sorted_dict_statistic = read_dict_statistic()
-#
-# game_stats_count = len(sorted_game_statistic)
-# dict_stats_count = len(sorted_dict_statistic)
-# dict_count = len(pd.keys())
-
-
-
-# count = input_count()# Формирует количество слов.
-
-# got_words_form_dict = get_words_from_dict(count)# Возвращает список рандомных слов равное count.
-# wrong_answers = []
-# right_answers = []
-# words = []
+# Game start
+wrong_answers = []
+right_answers = []
 
 # Игра
+question_number = 1
+for word in pack:
+    answers = get_answers(word)  # Возвращает список рандомных определений равное 4, включая правильное определение.
+    print(f'Вопрос № {question_number}')
+    for index in range(len(answers)):
+        print(f'{index+1}.{answers[index]}')
+    question_number += 1
+    print('-----------')
+    guess = input_guess()
+    if pd[word]['definition'] == answers[int(guess)-1]:
+        right_answers.append(word)
+        print('Правильный ответ!')
+    else:
+        wrong_answers.append(word)
+        print('Неправильный ответ!')
 
-
-# for word in words:
-#     answers = get_answers(word)# Возвращает список рандомных определений равное 4, включая правильное определение.
-#     for index in range(len(answers)):
-#         print(f'{index+1}.{answers[index]}')
-#     guess = input_guess()
-#     if pd[word]['definition'] == answers[int(guess)-1]:
-#         right_answers.append(word)
-#         print('Правильный ответ!')
-#     else:
-#         wrong_answers.append(word)
-#         print('Неправильный ответ!')
-#
-# current_game_stat = make_current_game_stat(right_answers, wrong_answers)
-# if game_stat_exist:
-#     read_game_stat = read_game_stats()
-#     updated_stats = update_dict_stats(read_game_stat, current_game_stat)
-#     save_game_stats(updated_stats)
-# else:
-#     create_game_stats(current_game_stat)
-
+current_game_stat = make_current_game_stat(right_answers, wrong_answers)
+if game_stat_exist:
+    read_game_stat = read_game_stats()
+    updated_stats = update_dict_stats(read_game_stat, current_game_stat)
+    save_game_stats(updated_stats)
+else:
+    create_game_stats(current_game_stat)
