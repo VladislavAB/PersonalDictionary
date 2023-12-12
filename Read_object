@@ -1,0 +1,10 @@
+ООП:
+1. Объект dict.
+Методы:
+1)get_word_from_api
+2)pd_from_file
+3)create_dict_file
+4)append_dict
+5)print_info
+
+2. Объект game.

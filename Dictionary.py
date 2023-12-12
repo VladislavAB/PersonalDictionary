@@ -58,6 +58,7 @@ def pd_from_file(file_name: str)-> dict:
                         'add_Date': add_date}
     return data
 # Читает имеющийся csv словарь в dict и его возвращает :data.
+# OBJECT DONE
 def create_dict_file(dict_path: str, first_data: str)-> True:
     now = datetime.datetime.now()
     last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
