@@ -4,9 +4,16 @@ import requests
 import datetime
 from string import ascii_letters
 class Dictionary:
-    def __init__(self, dict_path: str):
+    def __init__(self, dict_path: str, dict_stats_path: str):
+        self.dict_path = dict_path
+        self.dict_stats_path = dict_stats_path
+        self.stat = {}
         if os.path.exists(dict_path):
             self.pd = self.__pd_from_file__(dict_path)
+        if os.path.exists(dict_stats_path):
+            self.stat = self.read_dict_stat()
+
+
 
     def word_input(self) -> str:
         word_status = False
@@ -74,6 +81,79 @@ class Dictionary:
                                         'add_Date': add_date}
         return data
 
+    def in_dictionary(self, word: str) -> bool:
+        if word in self.pd.keys():
+            return True
+        else:
+            return False
+
+    def add_to_dictionary(self, word: str) -> bool:
+        api_response = self.get_word_from_api(word)
+        now = datetime.datetime.now()
+        last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
+        part_of_speach, definition, example = api_response
+        self.pd[word] = {'part_of_speach': part_of_speach, 'definition': definition, 'example': example, 'add_Date': last}
+        return True
+
+    def create_dict_file(self, word_info: str) -> bool:
+        now = datetime.datetime.now()
+        last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
+        row = word_info + "^" + last + "\n"
+        with open(self.dict_path, 'w') as f:
+            header = "Word^Part_of_Speach^Definition^Example^add_Date\n"
+            f.write(header)
+            f.write(row)
+        return True
+
+    def append_dict_file(self, word_info: str) -> bool:
+        now = datetime.datetime.now()
+        last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
+        row = word_info + "^" + last + "\n"
+        with open(self.dict_path, 'a') as f:
+            f.write(row)
+        return True
+
+    def save_to_file(self, word_info) -> bool:
+        dict_exist = True if os.path.exists(self.dict_path) else False
+        if dict_exist:
+            self.append_dict_file(word_info)
+        else:
+            self.create_dict_file(word_info)
+        return True
+
+    def read_dict_stat(self) -> dict:
+        stat = {}
+        if os.path.exists(self.dict_stats_path):
+            with open(self.dict_stats_path, 'r') as f:
+                read = csv.reader(f, delimiter='^')
+                next(read)
+                for row in read:
+                    word_for_stats = row[0]
+                    count_for_stats = row[1]
+                    add_date_for_stats = row[2]
+                    stat[word_for_stats] = {'Count': count_for_stats, 'Last': add_date_for_stats}
+        return stat
+
+    def update_dict_stats(self) -> bool:
+        time = datetime.datetime.now()
+        last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
+        if word in self.stat.keys():
+            print(f"Count: {self.stat[word]['Count']}\nLast search", self.stat[word]['Last'])
+            self.stat[word]['Count'] = str(int(self.stat[word]['Count']) + 1)
+            self.stat[word]['Last'] = last
+        else:
+            self.stat[word] = {'Count': '1', 'Last': last}
+        return True
+
+    def save_dict_stats(self) -> None:
+        with open(self.dict_stats_path, 'w') as f:
+            header = 'Word^Count^Last\n'
+            f.write(header)
+            if self.stat:
+                for key, value in self.stat.items():
+                    row = key + "^" + value["Count"] + "^" + value["Last"] + "\n"
+                    f.write(row)
+
     def print_info(self):
         for key in list(self.pd.keys()):
             word_form_file = key
@@ -88,29 +168,16 @@ class Dictionary:
             if add_date:
                 print(f' Date - {add_date}')
 
-    def in_dictionary(self, word: str) -> bool:
-        if word in self.pd.keys():
-            return True
-        else:
-            return False
+dictionary = Dictionary('dict.csv', 'dict_stats.csv')
 
-    def add_to_dictionary(self, word: str) -> bool:
-        api_response = self.get_word_from_api(word)
-        now = datetime.datetime.now()
-        last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
-        part_of_speach, definition, example  = api_response
-        self.pd[word] = {'part_of_speach': part_of_speach, 'definition': definition, 'example': example, 'add_Date': last}
-        return True
-
-dictionary = Dictionary('dict.csv')
-
-## enter word
 word = dictionary.word_input()
-## check word in dictionary
+definition, example, part_of_speach = dictionary.get_word_from_api(word)
+word_info = word + '^' + part_of_speach + '^' + definition + '^' + example
 if not dictionary.in_dictionary(word):
-## if not in dictionary add to dictionary
     dictionary.add_to_dictionary(word)
-## print dictionary
-dictionary.print_info()
+    dictionary.save_to_file(word_info)
+dictionary.update_dict_stats()
+dictionary.save_dict_stats()
+# dictionary.print_info()
 
 

@@ -1,7 +1,4 @@
-import csv
-import requests
 import os.path
-import datetime
 import Dictionary
 
 pd = {}
@@ -33,6 +30,3 @@ else:
         Dictionary.append_dict(dict_path, word_info)
     else:
         Dictionary.create_dict_file(dict_path, word_info)
-
-# В csv в dict списываем потому, что удобно?
-
