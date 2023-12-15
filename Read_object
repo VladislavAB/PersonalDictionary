@@ -1,10 +1,26 @@
 ООП:
 1. Объект dict.
 Методы:
-1)get_word_from_api
-2)pd_from_file
-3)create_dict_file
-4)append_dict
-5)print_info
+1) get_word_from_api
+2) pd_from_file
+3) create_dict_file
+4) append_dict
+5) print_info
 
 2. Объект game.
+Методы:
+
+1) dictionary.pd_from_file
+2) game.get_words_from_PD_dict
+3) game.read_game_stat
+4) dictionary.read_dict_stat
+5) game.define_game - определить какая игра
+6) game.get_num_from_source
+7) game.change_elements
+8) play_game
+9) make_current_game_stat
+10) create_game_stat
+11) input_count
+12 guess_input
+13) get_answers
+
