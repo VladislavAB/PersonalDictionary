@@ -13,8 +13,6 @@ class Dictionary:
         if os.path.exists(dict_stats_path):
             self.stat = self.read_dict_stat()
 
-
-
     def word_input(self) -> str:
         word_status = False
         word_for_check = ''
@@ -62,7 +60,7 @@ class Dictionary:
                 example = response_json[0]['meanings'][0]['definitions'][0]['example']
             else:
                 example = ' '
-        return part_of_speach, definition, example,
+        return part_of_speach, definition, example
 
     def __pd_from_file__(self, file_name: str) -> dict:
         data = {}
@@ -143,6 +141,7 @@ class Dictionary:
             self.stat[word]['Last'] = last
         else:
             self.stat[word] = {'Count': '1', 'Last': last}
+            print(f"Count: {self.stat[word]['Count']}\nLast search", self.stat[word]['Last'])
         return True
 
     def save_dict_stats(self) -> None:
@@ -168,16 +167,25 @@ class Dictionary:
             if add_date:
                 print(f' Date - {add_date}')
 
+    def get_word_info(self, word: str):
+        if dictionary.get_word_from_api(word):
+            part_of_speach, definition, example = dictionary.get_word_from_api(word)
+            word_info_inner = word + '^' + part_of_speach + '^' + definition + '^' + example
+            return word_info_inner
+        else:
+            print("No Definitions Found!")
+            exit()
+
 dictionary = Dictionary('dict.csv', 'dict_stats.csv')
 
 word = dictionary.word_input()
-definition, example, part_of_speach = dictionary.get_word_from_api(word)
-word_info = word + '^' + part_of_speach + '^' + definition + '^' + example
+word_info = dictionary.get_word_info(word)
 if not dictionary.in_dictionary(word):
     dictionary.add_to_dictionary(word)
     dictionary.save_to_file(word_info)
-dictionary.update_dict_stats()
-dictionary.save_dict_stats()
+else:
+    dictionary.update_dict_stats()
+    dictionary.save_dict_stats()
 # dictionary.print_info()
 
 
