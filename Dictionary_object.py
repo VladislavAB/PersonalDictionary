@@ -3,6 +3,8 @@ import csv
 import requests
 import datetime
 from string import ascii_letters
+
+
 class Dictionary:
     def __init__(self, dict_path: str, dict_stats_path: str):
         self.dict_path = dict_path
@@ -32,7 +34,6 @@ class Dictionary:
         url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + source_word
         response = requests.get(url)
         response_json = response.json()
-        # meanings = response_json[0]['meanings']
         part_of_speach = ''
         definition = ''
         example = ''
@@ -90,7 +91,8 @@ class Dictionary:
         now = datetime.datetime.now()
         last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
         part_of_speach, definition, example = api_response
-        self.pd[word] = {'part_of_speach': part_of_speach, 'definition': definition, 'example': example, 'add_Date': last}
+        self.pd[word] = {'part_of_speach': part_of_speach, 'definition': definition, 'example': example,
+                         'add_Date': last}
         return True
 
     def create_dict_file(self, word_info: str) -> bool:
@@ -132,7 +134,7 @@ class Dictionary:
                     stat[word_for_stats] = {'Count': count_for_stats, 'Last': add_date_for_stats}
         return stat
 
-    def update_dict_stats(self) -> bool:
+    def update_dict_stats(self, word: str) -> bool:
         time = datetime.datetime.now()
         last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
         if word in self.stat.keys():
@@ -168,22 +170,11 @@ class Dictionary:
                 print(f' Date - {add_date}')
 
     def get_word_info(self, word: str):
-        if dictionary.get_word_from_api(word):
-            part_of_speach, definition, example = dictionary.get_word_from_api(word)
+        word_from_api = self.get_word_from_api(word)
+        if word_from_api:
+            part_of_speach, definition, example = word_from_api
             word_info_inner = word + '^' + part_of_speach + '^' + definition + '^' + example
             return word_info_inner
         else:
             print("No Definitions Found!")
             exit()
-
-dictionary = Dictionary('dict.csv', 'dict_stats.csv')
-
-word = dictionary.word_input()
-word_info = dictionary.get_word_info(word)
-if not dictionary.in_dictionary(word):
-    dictionary.add_to_dictionary(word)
-    dictionary.save_to_file(word_info)
-else:
-    dictionary.update_dict_stats()
-    dictionary.save_dict_stats()
-# dictionary.print_info()

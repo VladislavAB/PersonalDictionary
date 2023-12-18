@@ -10,7 +10,7 @@
 2. Объект game.
 Методы:
 
-1) dictionary.pd_from_file
+1) dictionary.pd_from_file +
 2) game.get_words_from_PD_dict
 3) game.read_game_stat
 4) dictionary.read_dict_stat
@@ -24,3 +24,16 @@
 12 guess_input
 13) get_answers
 
+Сценарий игры:
+1) Составляем список слов для игры (загрузим в конструкторе)
+2) Игра
+3) Изменение и сохранение стаистики
+
+# temp
+- Загружаем словарь
+- Загружаем статистику словаря
+- Загружаем стаистику игры
+
+game = Game()
+game.play()
+game.save_stats()
