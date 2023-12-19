@@ -59,7 +59,7 @@ class Game:
         sorted_game_statistic = []
         if read_game_stat:
             for key, value in read_game_stat.items():
-                sorted_game_statistic.append([key, value['wrong']])
+                sorted_game_statistic.append([key, value['wrong'] - value['right']])
             sorted_game_statistic.sort(key=lambda x: x[1], reverse=True)
             sorted_game_statistic = [i[0] for i in sorted_game_statistic]
             return sorted_game_statistic
@@ -77,7 +77,7 @@ class Game:
             game_number_ = 3
         return game_number_
 
-    def get_num_from_source(self, source: list, exclude: list, count: int) -> list:
+    def get_unique_from_source(self, source: list, exclude: list, count: int) -> list:
         result = []
         uniq_from_source = set(source) - set(exclude)
         diff_len = len(uniq_from_source)
@@ -114,9 +114,9 @@ class Game:
                 word = list(self.pd.keys())[random.randint(0, len(self.pd) - 1)]
                 if word not in pack:
                     pack.append(word)
-        unique_words_game = self.get_num_from_source(game_stat, pack, 2)
+        unique_words_game = self.get_unique_from_source(game_stat, pack, 2)
         pack = self.change_elements(pack, unique_words_game)
-        unique_words_dict = self.get_num_from_source(dict_stat, pack, 1)
+        unique_words_dict = self.get_unique_from_source(dict_stat, pack, 1)
         pack = self.change_elements(pack, unique_words_dict)
         return pack
 
