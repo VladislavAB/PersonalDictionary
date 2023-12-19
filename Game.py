@@ -39,7 +39,6 @@ def get_words_from_dict(count: int) -> list:
 def input_guess() -> int:
     guess_OK = False
     guess = None
-    question_number = 1
     while not guess_OK:
         guess = input(f'Что означает слово: {word}? ')
         if guess.isdigit():

@@ -2,15 +2,16 @@ from Dictionary_object import Dictionary
 import os
 import csv
 import random
+import datetime
 
 
 # print(f'Dict: {game.pd}\nGame stat: {game.game_stat}\nDict stat: {game.dict_stat}')
-
 class Game:
     def __init__(self):
         self.dict_path = 'dict.csv'
         self.dict_stat_path = 'dict_stats.csv'
         self.game_stat_path = 'game_stats.csv'
+        self.game_stat_exist = True if os.path.exists(self.game_stat_path) else False
 
         self.dictionary = Dictionary(self.dict_path, self.dict_stat_path)
         self.pd = self.dictionary.__pd_from_file__(self.dict_path)
@@ -61,7 +62,7 @@ class Game:
         else:
             return sorted_game_statistic
 
-    def define_game(self) -> int:
+    def game_number(self) -> int:
         game_stat_exist = True if os.path.exists(self.game_stat_path) else False
         game_number_ = None
         if len(self.pd.keys()) >= 10 and game_stat_exist is False:
@@ -94,7 +95,7 @@ class Game:
                 count -= 1
         return source
 
-    def create_words(self) -> list:
+    def create_words(self, game_number: int) -> list:
         pack = []
         if game_number == 1:
             pack = list(self.pd.keys())[:5]
@@ -125,7 +126,23 @@ class Game:
                 answers.append(pd_definitions[num])
         random.shuffle(answers)
         return answers
-    def play_game(self):
+
+    def input_guess(self, word) -> int:
+        guess_OK = False
+        guess = None
+        while not guess_OK:
+            guess = input(f'Что означает слово: {word}? ')
+            if guess.isdigit():
+                guess = int(guess)
+                if 0 < guess <= 4:
+                    guess_OK = True
+                else:
+                    print('Введите цифру в пределах диапазона!')
+            else:
+                print('Вы ввели букву вместо цифры!')
+        return guess
+
+    def play_game(self, pack: list):
         wrong_answers = []
         right_answers = []
         question_number = 1
@@ -136,11 +153,67 @@ class Game:
                 print(f'{index + 1}.{answers[index]}')
             question_number += 1
             print('-----------')
-#             guess input продолжить
+            guess = self.input_guess(word)
+            if self.pd[word]['definition'] == answers[int(guess) - 1]:
+                right_answers.append(word)
+                print('Правильный ответ!')
+            else:
+                wrong_answers.append(word)
+                print('Неправильный ответ!')
+        return right_answers, wrong_answers
 
+    def make_current_game_stat(self, right_answers: list, wrong_answers: list) -> dict:
+        time = datetime.datetime.now()
+        last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
+        game_stat = {}
+        for word in right_answers:
+            game_stat[word] = {'right': 1, 'wrong': 0, 'last': last}
+        for word in wrong_answers:
+            game_stat[word] = {'wrong': 1, 'right': 0, 'last': last}
+        return game_stat
+
+    def update_dict_stats(self, current_game_stat: dict) -> dict:
+        time = datetime.datetime.now()
+        last = time.strftime('%d') + '|' + time.strftime('%b') + '|' + time.strftime('%y')
+        for word in current_game_stat.keys():
+            if word in self.game_stat.keys():
+                self.game_stat[word]['wrong'] = self.game_stat[word]['wrong'] + current_game_stat[word]['wrong']
+                self.game_stat[word]['right'] = self.game_stat[word]['right'] + current_game_stat[word]['right']
+                self.game_stat[word]['last'] = last
+            else:
+                self.game_stat[word] = {'wrong': current_game_stat[word]['wrong'],
+                                        'right': current_game_stat[word]['right'],
+                                        'last': current_game_stat[word]['last']}
+        return self.game_stat
+
+    def create_game_stats(self, current_game_stat: dict) -> True:
+        now = datetime.datetime.now()
+        last = now.strftime('%d') + '|' + now.strftime('%b') + '|' + now.strftime('%y')
+        with open(self.game_stat_path, 'w') as f:
+            header = "Word^Wrong^Right^last_Date\n"
+            f.write(header)
+            for word, stat in current_game_stat.items():
+                row = word + "^" + str(stat['wrong']) + "^" + str(stat['right']) + "^" + last + "\n"
+                f.write(row)
+        return True
+
+    def save_game_stats(self, updated_stats: dict) -> True:
+        with open(self.game_stat_path, 'w') as f:
+            header = "Word^Wrong^Right^last_Date\n"
+            f.write(header)
+            for key, value in updated_stats.items():
+                row = key + "^" + str(value['wrong']) + "^" + str(value['right']) + "^" + value['last'] + "\n"
+                f.write(row)
+        return True
 
 
 game = Game()
-game_number = game.define_game()
-pack = game.create_words()
-print(game_number)
+game_number = game.game_number()
+pack = game.create_words(game_number)
+right_answers, wrong_answers = game.play_game(pack)
+current_game_stat = game.make_current_game_stat(right_answers, wrong_answers)
+if game.game_stat_exist:
+    updated_stats = game.update_dict_stats(current_game_stat)
+    game.save_game_stats(updated_stats)
+else:
+    game.create_game_stats(current_game_stat)
